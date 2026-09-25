@@ -24,6 +24,7 @@ export const Route = createFileRoute("/planner")({
 const ranges = ["Daily", "Weekly"] as const;
 
 function PlannerPage() {
+  const [goal, setGoal] = useState("");
   const [tasks, setTasks] = useState("");
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [start, setStart] = useState("09:00");
@@ -45,11 +46,11 @@ function PlannerPage() {
           {
             role: "system",
             content:
-              "You are a pragmatic productivity planner. Build a realistic, time-blocked schedule. Rules: prioritise by impact and deadline; place every task in an explicit clock-time block (e.g. 09:00–10:30); include a 15-minute break after roughly every 90 minutes of focus and a lunch break in a full day; never exceed the available working hours; protect deep work in the morning where possible. If the tasks cannot reasonably fit, schedule what fits and end with a section '⚠️ Needs a decision' that names specific tasks to move, delegate or drop, and asks the user which. Output must be structured and scannable: short headings, time blocks, bullet points. No long paragraphs, no preamble.",
+              "You are a pragmatic productivity planner. Build a realistic, time-blocked schedule in service of the user's goal. Start with a section 'Task Breakdown' listing every task as: Task — Priority: High/Medium/Low — Duration: e.g. 45 min — one short reason. Assign priority by urgency and importance relative to the goal (High = urgent and critical to the goal, Medium = important but less urgent or supportive, Low = minor impact on the goal or can wait). Allocate a realistic duration to every task based on its scope and what the goal requires, respecting any duration the user gave. Then build the schedule: order by priority (High first), place every task in an explicit clock-time block (e.g. 09:00–10:30) showing its priority tag like [High]; include a 15-minute break after roughly every 90 minutes of focus and a lunch break in a full day; never exceed the available working hours; protect deep work in the morning where possible. If the tasks cannot reasonably fit, schedule what fits (dropping Low first) and end with a section '⚠️ Needs a decision' that names specific tasks to move, delegate or drop, and asks the user which. Output must be structured and scannable: short headings, time blocks, bullet points. No long paragraphs, no preamble.",
           },
           {
             role: "user",
-            content: `Plan type: ${range}\nStart date: ${date}\nWorking hours: ${start} to ${end}\nTasks (with any priorities or deadlines):\n${tasks}\n${notes ? `Extra constraints: ${notes}` : ""}`,
+            content: `Goal: ${goal || "Not specified — infer the most sensible goal from the tasks"}\nPlan type: ${range}\nStart date: ${date}\nWorking hours: ${start} to ${end}\nTasks (with any priorities or deadlines):\n${tasks}\n${notes ? `Extra constraints: ${notes}` : ""}`,
           },
         ],
         setOutput,
@@ -70,6 +71,19 @@ function PlannerPage() {
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="card-surface space-y-5 p-5 sm:p-6">
+          <div className="space-y-2">
+            <span className="text-sm font-medium">Goal</span>
+            <Input
+              value={goal}
+              onChange={(e) => setGoal(e.target.value)}
+              placeholder="e.g. Ship the Q3 report to leadership by Friday"
+              className="bg-card"
+            />
+            <p className="text-xs text-muted-foreground">
+              AXON sets each task's duration and High / Medium / Low priority based on this goal.
+            </p>
+          </div>
+
           <div className="space-y-2">
             <span className="text-sm font-medium">Tasks</span>
             <Textarea
